@@ -30,8 +30,8 @@ func main() {
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 
 		mux := http.NewServeMux()
-		mux.Handle("/static/", http.FileServerFS(staticFiles))
-		mux.Handle("/generated/", http.StripPrefix("/generated/", http.FileServerFS(os.DirFS("generated"))))
+		mux.Handle("/static/", StdWithLogging(http.FileServerFS(staticFiles)))
+		mux.Handle("/generated/", StdWithLogging(http.StripPrefix("/generated/", http.FileServerFS(os.DirFS("generated")))))
 		api := humago.New(mux, huma.DefaultConfig("TRMNL API", "1.0"))
 		api.UseMiddleware(WithLogging)
 		setErrorModel(api)
@@ -125,4 +125,21 @@ func WithLogging(ctx huma.Context, next func(huma.Context)) {
 	// Call the next middleware in the chain. This eventually calls the
 	// operation handler as well.
 	next(ctx)
+}
+
+// WithLogging wraps http.Handler with logging middleware
+// It logs request method, path, remote address, response status and latency in nanoseconds
+// See ExampleWithLogging for usage
+func StdWithLogging(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		slog.Default().Info("Request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"proto", r.Proto,
+			"remoteAddr", r.RemoteAddr,
+		)
+		handler.ServeHTTP(w, r)
+
+	})
 }
