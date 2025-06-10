@@ -1,21 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
-	"log"
+	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-
-	"github.com/chromedp/chromedp"
+	// "github.com/chromedp/chromedp"
 )
 
 // Options for the CLI.
@@ -29,11 +29,10 @@ var staticFiles embed.FS
 func main() {
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 
-		mux := http.NewServeMux()
-		mux.Handle("/static/", StdWithLogging(http.FileServerFS(staticFiles)))
-		mux.Handle("/generated/", StdWithLogging(http.StripPrefix("/generated/", http.FileServerFS(os.DirFS("generated")))))
+		mux := &MiddlewareMux{http.NewServeMux()}
+		mux.Handle("/static/", http.FileServerFS(staticFiles))
+		mux.Handle("/generated/", http.StripPrefix("/generated/", http.FileServerFS(os.DirFS("generated"))))
 		api := humago.New(mux, huma.DefaultConfig("TRMNL API", "1.0"))
-		api.UseMiddleware(WithLogging)
 		setErrorModel(api)
 		addRoutes(api)
 
@@ -53,78 +52,65 @@ func main() {
 		})
 	})
 
-	// Il contenuto HTML da renderizzare
-	htmlContent := `
-	<!DOCTYPE html>
-<html lang="en" class="bg-white text-black">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Courier New', Courier, monospace;
-    }
-  </style>
-</head>
-<body class="flex flex-col justify-center items-center h-screen select-none">
+	// 	// Il contenuto HTML da renderizzare
+	// 	htmlContent := `
+	// 	<!DOCTYPE html>
+	// <html lang="en" class="bg-white text-black">
+	// <head>
+	//   <meta charset="UTF-8" />
+	//   <meta name="viewport" content="width=device-width, initial-scale=1" />
+	//   <script src="https://cdn.tailwindcss.com"></script>
+	//   <style>
+	//     body {
+	//       font-family: 'Courier New', Courier, monospace;
+	//     }
+	//   </style>
+	// </head>
+	// <body class="flex flex-col justify-center items-center h-screen select-none">
 
-  <main class="text-center space-y-3">
-    <h1 class="text-xl leading-tight tracking-wide">DAJE BYOS</h1>
-    <p class="text-lg">This screen was rendered by BYOS</p>
-    <a href="#" class="underline">Giacomo Marinangeli</a>
-  </main>
+	//   <main class="text-center space-y-3">
+	//     <h1 class="text-xl leading-tight tracking-wide">DAJE BYOS</h1>
+	//     <p class="text-lg">This screen was rendered by BYOS</p>
+	//     <a href="#" class="underline">Giacomo Marinangeli</a>
+	//   </main>
 
-  <footer class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto">
-    <div class="flex items-center justify-center border border-black rounded-md px-3 py-1 text-xs font-mono leading-none whitespace-nowrap bg-white bg-opacity-90">
-      trmnl.gmar.dev
-    </div>
-  </footer>
+	//   <footer class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto">
+	//     <div class="flex items-center justify-center border border-black rounded-md px-3 py-1 text-xs font-mono leading-none whitespace-nowrap bg-white bg-opacity-90">
+	//       trmnl.gmar.dev
+	//     </div>
+	//   </footer>
 
-</body>
-</html>
-    `
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	// </body>
+	// </html>
+	//     `
+	// ctx, cancel := chromedp.NewContext(context.Background())
+	// defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
+	// ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+	// defer cancel()
 
-	var buf []byte
+	// var buf []byte
 
-	// Usa url.PathEscape per codificare correttamente il contenuto HTML
-	dataURL := "data:text/html," + url.PathEscape(htmlContent)
+	// // Usa url.PathEscape per codificare correttamente il contenuto HTML
+	// dataURL := "data:text/html," + url.PathEscape(htmlContent)
 
-	err := chromedp.Run(ctx,
-		chromedp.Navigate(dataURL),
-		chromedp.WaitVisible("body", chromedp.ByQuery),
-		chromedp.EmulateViewport(800, 480),
-		chromedp.FullScreenshot(&buf, 90),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := chromedp.Run(ctx,
+	// 	chromedp.Navigate(dataURL),
+	// 	chromedp.WaitVisible("body", chromedp.ByQuery),
+	// 	chromedp.EmulateViewport(800, 480),
+	// 	chromedp.FullScreenshot(&buf, 90),
+	// )
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	if err := os.WriteFile("generated/output.png", buf, 0644); err != nil {
-		log.Fatal(err)
-	}
+	// if err := os.WriteFile("generated/output.png", buf, 0644); err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	log.Println("Screenshot salvato in output.png")
+	// log.Println("Screenshot salvato in output.png")
 
 	cli.Run()
-}
-
-func WithLogging(ctx huma.Context, next func(huma.Context)) {
-	// Set a custom header on the response.
-	slog.Default().Info("Request",
-		"method", ctx.Method(),
-		"path", ctx.URL().Path,
-		"remoteAddr", ctx.RemoteAddr(),
-	)
-
-	// Call the next middleware in the chain. This eventually calls the
-	// operation handler as well.
-	next(ctx)
 }
 
 // WithLogging wraps http.Handler with logging middleware
@@ -132,7 +118,9 @@ func WithLogging(ctx huma.Context, next func(huma.Context)) {
 // See ExampleWithLogging for usage
 func StdWithLogging(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		bodyBytes, _ := io.ReadAll(r.Body)
+		r.Body.Close() //  must close
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		slog.Default().Info("Request",
 			"method", r.Method,
 			"path", r.URL.Path,
@@ -140,6 +128,32 @@ func StdWithLogging(handler http.Handler) http.Handler {
 			"remoteAddr", r.RemoteAddr,
 		)
 		handler.ServeHTTP(w, r)
+		fmt.Printf("LOG %s %s\n\n", r.URL.Path, bodyBytes)
 
 	})
+}
+
+// MiddlewareMux implements multiplexer with middlewares stored in a list
+type MiddlewareMux struct {
+	*http.ServeMux
+}
+
+func (mux *MiddlewareMux) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+	mux.ServeMux.HandleFunc(pattern, handler)
+}
+
+// ServeHTTP will serve every request
+func (mux *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, _ := io.ReadAll(r.Body)
+	r.Body.Close() //  must close
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	headers, _ := json.Marshal(r.Header)
+	slog.Default().Info("Request",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"proto", r.Proto,
+		"remoteAddr", r.RemoteAddr,
+	)
+	mux.ServeMux.ServeHTTP(w, r)
+	fmt.Printf("LOG %s %s\nBody: %s\n\n", r.URL.Path, headers, bodyBytes)
 }

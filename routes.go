@@ -34,12 +34,17 @@ func addRoutes(api huma.API) {
 }
 
 type SetupRequest struct {
-	Host string
-	ID   string `header:"ID" doc:"Device Mac Address"`
+	Host  string
+	Proto string
+	ID    string `header:"ID" doc:"Device Mac Address"`
 }
 
 func (m *SetupRequest) Resolve(ctx huma.Context) []error {
 	m.Host = ctx.Host()
+	m.Proto = "http"
+	if m.Host == "trmnl.gmar.dev" {
+		m.Proto = "https"
+	}
 	return nil
 }
 
@@ -64,13 +69,14 @@ func setupHandler(ctx context.Context, input *SetupRequest) (*SetupResponse, err
 	resp.Body.Message = "Setup successful"
 	resp.Body.APIKey = "sk-123456789013456789"
 	resp.Body.FriendlyID = "ABCDEF"
-	resp.Body.ImageURL = "http://" + input.Host + "/static/placeholder.png"
+	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/placeholder.png"
 	resp.Body.Filename = "empty_state"
 	return resp, nil
 }
 
 type DisplayRequest struct {
 	Host           string
+	Proto          string
 	ID             string  `header:"ID" doc:"Device Mac Address"`
 	AccessToken    string  `header:"Access-Token" doc:"Access Token"`
 	RefreshRate    int     `header:"Refresh-Rate" doc:"Refresh Rate"`
@@ -81,6 +87,10 @@ type DisplayRequest struct {
 
 func (m *DisplayRequest) Resolve(ctx huma.Context) []error {
 	m.Host = ctx.Host()
+	m.Proto = "http"
+	if m.Host == "trmnl.gmar.dev" {
+		m.Proto = "https"
+	}
 	return nil
 }
 
@@ -103,7 +113,7 @@ func displayHandler(ctx context.Context, input *DisplayRequest) (*DisplayRespons
 	resp := &DisplayResponse{}
 	resp.Status = 200
 	resp.Body.Status = 200
-	resp.Body.ImageURL = "http://" + input.Host + "/generated/output.png"
+	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/output/placeholder.png"
 	resp.Body.Filename = "2025-06-08T00:00:00"
 	resp.Body.RefreshRate = "1800"
 	resp.Body.UpdateFirmware = false
@@ -123,6 +133,5 @@ type LogResponse struct {
 func logHandler(ctx context.Context, input *LogRequest) (*LogResponse, error) {
 	resp := &LogResponse{}
 	resp.Status = 200
-	fmt.Printf("Received log: %s\n", input.RawBody)
 	return resp, nil
 }
