@@ -12,7 +12,7 @@ func addRoutes(api huma.API) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "device-setup",
-		Path:        "/api/setup",
+		Path:        "/api/setup/",
 		Summary:     "Setup a new device",
 		Method:      http.MethodGet,
 	}, setupHandler)
