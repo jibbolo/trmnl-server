@@ -69,7 +69,7 @@ func setupHandler(ctx context.Context, input *SetupRequest) (*SetupResponse, err
 	resp.Body.Message = "Setup successful"
 	resp.Body.APIKey = "sk-123456789013456789"
 	resp.Body.FriendlyID = "ABCDEF"
-	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/placeholder.png"
+	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/empty_state.png"
 	resp.Body.Filename = "empty_state"
 	return resp, nil
 }
@@ -113,7 +113,7 @@ func displayHandler(ctx context.Context, input *DisplayRequest) (*DisplayRespons
 	resp := &DisplayResponse{}
 	resp.Status = 200
 	resp.Body.Status = 200
-	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/output/placeholder.png"
+	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/placeholder.png"
 	resp.Body.Filename = "2025-06-08T00:00:00"
 	resp.Body.RefreshRate = "1800"
 	resp.Body.UpdateFirmware = false
