@@ -19,7 +19,7 @@ func TestSetup(t *testing.T) {
 	macAddress := "00:11:22:33:44:55"
 
 	t.Run("setup device", func(t *testing.T) {
-		resp := api.Get("/api/setup", &SetupRequest{
+		resp := api.Get("/api/setup/", &SetupRequest{
 			ID: macAddress,
 		})
 		require.Equal(t, 200, resp.Result().StatusCode)
