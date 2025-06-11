@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -60,9 +59,7 @@ type SetupResponse struct {
 	}
 }
 
-// {"log":{"logs_array":[{"creation_timestamp":1749404319,"device_status_stamp":{"wifi_rssi_level":-66,"wifi_status":"connected","refresh_rate":900,"time_since_last_sleep_start":280,"current_fw_version":"1.5.5","special_function":"none","battery_voltage":3.844,"wakeup_reason":"button","free_heap_size":215512,"max_alloc_size":192500},"log_id":29,"log_message":"Failed to resolve hostname after 5 attempts, continuing...","log_codeline":573,"log_sourcefile":"src/bl.cpp","additional_info":{"filename_current":"","filename_new":"","retry_attempt":1}}]}}
 func setupHandler(ctx context.Context, input *SetupRequest) (*SetupResponse, error) {
-	fmt.Printf("Received log: %v\n", input)
 	resp := &SetupResponse{}
 	resp.Status = 200
 	resp.Body.Status = 200
@@ -70,7 +67,7 @@ func setupHandler(ctx context.Context, input *SetupRequest) (*SetupResponse, err
 	resp.Body.APIKey = "sk-123456789013456789"
 	resp.Body.FriendlyID = "ABCDEF"
 	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/empty_state.bmp"
-	resp.Body.Filename = "empty_state"
+	resp.Body.Filename = "empty_state.bmp"
 	return resp, nil
 }
 
@@ -83,6 +80,9 @@ type DisplayRequest struct {
 	BatteryVoltage float64 `header:"Battery-Voltage" doc:"Battery Voltage"`
 	FWVersion      string  `header:"FW-Version" doc:"Firmware Version"`
 	RSSI           int     `header:"RSSI" doc:"Received Signal Strength Indicator"`
+	UserAgent      string  `header:"User-Agent" doc:"User Agent"`
+	Width          int     `header:"Width" doc:"Width"`
+	Height         int     `header:"Height" doc:"Height"`
 }
 
 func (m *DisplayRequest) Resolve(ctx huma.Context) []error {
@@ -97,28 +97,32 @@ func (m *DisplayRequest) Resolve(ctx huma.Context) []error {
 type DisplayResponse struct {
 	Status int
 	Body   struct {
-		Status         int    `json:"status" doc:"Display"`
-		ImageURL       string `json:"image_url" doc:"Image URL"`
-		Filename       string `json:"filename" doc:"Filename"`
-		RefreshRate    string `json:"refresh_rate" doc:"Refresh Rate"`
-		UpdateFirmware bool   `json:"update_firmware" doc:"Update Firmware"`
-		FirmwareURL    string `json:"firmware_url" doc:"Firmware URL"`
-		ResetFirmware  bool   `json:"reset_firmware" doc:"Reset Firmware"`
+		Status          int    `json:"status" doc:"Display"`
+		Filename        string `json:"filename" doc:"Filename"`
+		ImageURL        string `json:"image_url" doc:"Image URL"`
+		ImageURLTimeout int    `json:"image_url_timeout" doc:"Image URL Timeout"`
+		RefreshRate     string `json:"refresh_rate" doc:"Refresh Rate"`
+		UpdateFirmware  bool   `json:"update_firmware" doc:"Update Firmware"`
+		FirmwareURL     string `json:"firmware_url" doc:"Firmware URL"`
+		ResetFirmware   bool   `json:"reset_firmware" doc:"Reset Firmware"`
+		SpecialFunction string `json:"special_function" doc:"Special Function"`
+		Action          string `json:"action" doc:"Action"`
 	}
 }
 
-// Received log: &{192.168.1.51:8888 DC:06:75:B8:89:2C 7Bi1rqZlnDFg16dG9ZIKK4 900 3.85 1.5.5 -45}
 func displayHandler(ctx context.Context, input *DisplayRequest) (*DisplayResponse, error) {
-	fmt.Printf("Received log: %v\n", input)
 	resp := &DisplayResponse{}
-	resp.Status = 200
-	resp.Body.Status = 200
+	resp.Status = http.StatusOK
+	resp.Body.Status = http.StatusOK
 	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/placeholder.bmp"
-	resp.Body.Filename = "2025-06-08T00:00:00"
+	resp.Body.ImageURLTimeout = 0
+	resp.Body.Filename = "placeholder.bmp"
 	resp.Body.RefreshRate = "1800"
 	resp.Body.UpdateFirmware = false
 	resp.Body.FirmwareURL = ""
 	resp.Body.ResetFirmware = false
+	resp.Body.SpecialFunction = "restart_playlist"
+	resp.Body.Action = ""
 	return resp, nil
 }
 
@@ -132,6 +136,6 @@ type LogResponse struct {
 
 func logHandler(ctx context.Context, input *LogRequest) (*LogResponse, error) {
 	resp := &LogResponse{}
-	resp.Status = 200
+	resp.Status = http.StatusNoContent
 	return resp, nil
 }

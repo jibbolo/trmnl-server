@@ -133,6 +133,20 @@ func StdWithLogging(handler http.Handler) http.Handler {
 	})
 }
 
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
+	return &loggingResponseWriter{w, http.StatusOK}
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
 // MiddlewareMux implements multiplexer with middlewares stored in a list
 type MiddlewareMux struct {
 	*http.ServeMux
@@ -148,12 +162,14 @@ func (mux *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body.Close() //  must close
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	headers, _ := json.Marshal(r.Header)
+	lw := NewLoggingResponseWriter(w)
+	mux.ServeMux.ServeHTTP(lw, r)
 	slog.Default().Info("Request",
 		"method", r.Method,
+		"status", lw.statusCode,
 		"path", r.URL.Path,
 		"proto", r.Proto,
 		"remoteAddr", r.RemoteAddr,
 	)
-	mux.ServeMux.ServeHTTP(w, r)
-	fmt.Printf("LOG %s %s\nBody: %s\n\n", r.URL.Path, headers, bodyBytes)
+	fmt.Printf("LOG %s %d %s\nBody: %s\n\n", r.URL.Path, lw.statusCode, headers, bodyBytes)
 }
