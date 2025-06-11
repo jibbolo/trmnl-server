@@ -67,7 +67,7 @@ func setupHandler(ctx context.Context, input *SetupRequest) (*SetupResponse, err
 	resp.Body.APIKey = "sk-123456789013456789"
 	resp.Body.FriendlyID = "ABCDEF"
 	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/empty_state.bmp"
-	resp.Body.Filename = "empty_state.bmp"
+	resp.Body.Filename = "empty_state"
 	return resp, nil
 }
 
