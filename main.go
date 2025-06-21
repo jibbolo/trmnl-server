@@ -38,7 +38,7 @@ func main() {
 
 		server := http.Server{
 			Addr:    fmt.Sprintf(":%d", options.Port),
-			Handler: mux,
+			Handler: WithCORS(mux),
 		}
 
 		hooks.OnStart(func() {
@@ -145,6 +145,27 @@ func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.statusCode = code
 	lrw.ResponseWriter.WriteHeader(code)
+}
+
+// WithCORS is a middleware that adds CORS headers to all responses
+func WithCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers to allow any origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "86400") // 24 hours
+
+		// Handle preflight OPTIONS requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Pass the request to the next handler
+		next.ServeHTTP(w, r)
+	})
 }
 
 // MiddlewareMux implements multiplexer with middlewares stored in a list

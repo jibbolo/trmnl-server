@@ -114,7 +114,7 @@ type DisplayResponse struct {
 func displayHandler(ctx context.Context, input *DisplayRequest) (*DisplayResponse, error) {
 	resp := &DisplayResponse{}
 	resp.Status = http.StatusOK
-	resp.Body.Status = http.StatusOK
+	resp.Body.Status = 0
 	resp.Body.ImageURL = input.Proto + "://" + input.Host + "/static/placeholder.bmp"
 	resp.Body.ImageURLTimeout = 0
 	resp.Body.Filename = time.Now().Format("20060102150405") + "_placeholder.bmp"
