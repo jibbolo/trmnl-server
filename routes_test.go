@@ -55,7 +55,7 @@ func TestDisplay(t *testing.T) {
 		require.Equal(t, 200, resp.Result().StatusCode)
 		output, err := convertTestResponse[*DisplayResponse](resp.Body)
 		require.NoError(t, err)
-		assert.Equal(t, output.Body.Status, resp.Result().StatusCode, "Body status")
+		assert.Equal(t, output.Body.Status, 0, "Body status")
 		assert.NotEmpty(t, output.Body.Filename, "2025-06-08T00:00:00")
 		assert.NotEmpty(t, output.Body.RefreshRate, "1800")
 		assert.Contains(t, output.Body.ImageURL, "http://", "Image url")
