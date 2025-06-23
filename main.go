@@ -30,8 +30,14 @@ func main() {
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 
 		mux := &MiddlewareMux{http.NewServeMux()}
-		mux.Handle("/static/", http.FileServerFS(staticFiles))
-		mux.Handle("/generated/", http.StripPrefix("/generated/", http.FileServerFS(os.DirFS("generated"))))
+
+		// Apply ContentLengthMiddleware to static files
+		staticHandler := http.FileServerFS(staticFiles)
+		mux.Handle("/static/", ContentLengthMiddleware(staticHandler))
+
+		generatedHandler := http.FileServerFS(os.DirFS("generated"))
+		mux.Handle("/generated/", http.StripPrefix("/generated/", ContentLengthMiddleware(generatedHandler)))
+
 		api := humago.New(mux, huma.DefaultConfig("TRMNL API", "1.0"))
 		setErrorModel(api)
 		addRoutes(api)
@@ -51,64 +57,6 @@ func main() {
 			server.Shutdown(ctx)
 		})
 	})
-
-	// 	// Il contenuto HTML da renderizzare
-	// 	htmlContent := `
-	// 	<!DOCTYPE html>
-	// <html lang="en" class="bg-white text-black">
-	// <head>
-	//   <meta charset="UTF-8" />
-	//   <meta name="viewport" content="width=device-width, initial-scale=1" />
-	//   <script src="https://cdn.tailwindcss.com"></script>
-	//   <style>
-	//     body {
-	//       font-family: 'Courier New', Courier, monospace;
-	//     }
-	//   </style>
-	// </head>
-	// <body class="flex flex-col justify-center items-center h-screen select-none">
-
-	//   <main class="text-center space-y-3">
-	//     <h1 class="text-xl leading-tight tracking-wide">DAJE BYOS</h1>
-	//     <p class="text-lg">This screen was rendered by BYOS</p>
-	//     <a href="#" class="underline">Giacomo Marinangeli</a>
-	//   </main>
-
-	//   <footer class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto">
-	//     <div class="flex items-center justify-center border border-black rounded-md px-3 py-1 text-xs font-mono leading-none whitespace-nowrap bg-white bg-opacity-90">
-	//       trmnl.gmar.dev
-	//     </div>
-	//   </footer>
-
-	// </body>
-	// </html>
-	//     `
-	// ctx, cancel := chromedp.NewContext(context.Background())
-	// defer cancel()
-
-	// ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
-	// defer cancel()
-
-	// var buf []byte
-
-	// // Usa url.PathEscape per codificare correttamente il contenuto HTML
-	// dataURL := "data:text/html," + url.PathEscape(htmlContent)
-
-	// err := chromedp.Run(ctx,
-	// 	chromedp.Navigate(dataURL),
-	// 	chromedp.WaitVisible("body", chromedp.ByQuery),
-	// 	chromedp.EmulateViewport(800, 480),
-	// 	chromedp.FullScreenshot(&buf, 90),
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// if err := os.WriteFile("generated/output.png", buf, 0644); err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// log.Println("Screenshot salvato in output.png")
 
 	cli.Run()
 }
@@ -193,4 +141,70 @@ func (mux *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"remoteAddr", r.RemoteAddr,
 	)
 	fmt.Printf("LOG %s %d %s\nBody: %s\n\n", r.URL.Path, lw.statusCode, headers, bodyBytes)
+}
+
+// ContentLengthMiddleware ensures Content-Length header is set and disables chunked encoding
+func ContentLengthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Only apply to static files, particularly images
+		if strings.HasPrefix(r.URL.Path, "/static/") &&
+			(strings.HasSuffix(r.URL.Path, ".png") ||
+				strings.HasSuffix(r.URL.Path, ".bmp") ||
+				strings.HasSuffix(r.URL.Path, ".jpg")) {
+
+			// Create a custom ResponseWriter that captures the response
+			crw := &customResponseWriter{
+				ResponseWriter: w,
+				buffer:         &bytes.Buffer{},
+				header:         make(http.Header),
+			}
+
+			// Call the next handler with our custom writer
+			next.ServeHTTP(crw, r)
+
+			// Set Content-Length header based on buffer size
+			crw.header.Set("Content-Length", fmt.Sprintf("%d", crw.buffer.Len()))
+
+			// Explicitly remove any Transfer-Encoding header to prevent chunked encoding
+			crw.header.Del("Transfer-Encoding")
+
+			// Copy all headers from our custom ResponseWriter to the original
+			for k, vv := range crw.header {
+				for _, v := range vv {
+					w.Header().Add(k, v)
+				}
+			}
+
+			// Set status code
+			if crw.status > 0 {
+				w.WriteHeader(crw.status)
+			}
+
+			// Write the buffered response body
+			w.Write(crw.buffer.Bytes())
+		} else {
+			// For non-image requests, pass through normally
+			next.ServeHTTP(w, r)
+		}
+	})
+}
+
+// customResponseWriter captures the response to calculate its size
+type customResponseWriter struct {
+	http.ResponseWriter
+	buffer *bytes.Buffer
+	header http.Header
+	status int
+}
+
+func (crw *customResponseWriter) Header() http.Header {
+	return crw.header
+}
+
+func (crw *customResponseWriter) Write(b []byte) (int, error) {
+	return crw.buffer.Write(b)
+}
+
+func (crw *customResponseWriter) WriteHeader(statusCode int) {
+	crw.status = statusCode
 }
