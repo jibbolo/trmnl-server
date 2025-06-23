@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -27,6 +28,7 @@ type Options struct {
 var staticFiles embed.FS
 
 func main() {
+	// generateImage()
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 
 		mux := &MiddlewareMux{http.NewServeMux()}

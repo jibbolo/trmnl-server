@@ -3,6 +3,7 @@ module github.com/jibbolo/trmnl
 go 1.23.1
 
 require (
+	github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 	github.com/danielgtaylor/huma/v2 v2.32.0
 	github.com/stretchr/testify v1.10.0
 )
