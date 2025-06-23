@@ -15,7 +15,7 @@ func (e *Error) GetStatus() int {
 	return e.Status
 }
 
-func setErrorModel(api huma.API) {
+func setErrorModel(_ huma.API) {
 	huma.NewError = func(status int, message string, _ ...error) huma.StatusError {
 		return &Error{
 			Status:  status,
