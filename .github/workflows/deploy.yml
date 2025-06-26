@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - "**" # Push events to every tag including hierarchical tags like v1.0/beta
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:github
