@@ -28,4 +28,4 @@ jobs:
 
       - name: Updating summary
         run: |
-          echo "### Coolify response: ${{ steps.code.outputs.response }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Coolify response: ${{ steps.curl.outputs.response }}" >> $GITHUB_STEP_SUMMARY
