@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.1.1 - 2025-06-26
+#### Continuous Integration
+- add test before deploy - (3cf928c) - Giacomo Marinangeli
+- fix summary step in deploy github action - (25dc6de) - Giacomo Marinangeli
+- add curl to deploy github action - (a9cb8d5) - Giacomo Marinangeli
+- add curl to deploy github action - (1c0421f) - Giacomo Marinangeli
+- add cache to deploy github action - (97054e9) - Giacomo Marinangeli
+- add deploy github action - (74bb990) - Giacomo Marinangeli
+
+- - -
+
 ## v0.1.0 - 2025-06-23
 #### Bug Fixes
 - add content-lenght to images response - (ced8d2f) - Giacomo Marinangeli
