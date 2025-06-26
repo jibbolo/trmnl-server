@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kids Weekly Agenda</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Short+Stack&display=swap");
+
+            body {
+                font-family: "Short Stack", cursive;
+                width: 800px;
+                height: 480px;
+                background-color: white;
+                color: black;
+            }
+
+            .today {
+                border: 4px solid black !important;
+                background-color: #f0f0f0 !important;
+            }
+
+            .icon {
+                width: 40px;
+                height: 40px;
+                display: inline-block;
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+    <body class="p-4">
+        <div class="flex flex-col h-full">
+            <!-- Header -->
+            <div class="text-center mb-2">
+                <h1 class="text-3xl font-bold">Our Week</h1>
+                <div class="text-xl" id="current-week"></div>
+            </div>
+
+            <!-- Week Grid -->
+            <div class="flex flex-1 gap-2">
+                <!-- Monday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="monday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Monday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🎨</div>
+                            <div class="pl-2">🏃</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">🧩</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="tuesday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Tuesday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🎵</div>
+                            <div class="pl-2">🛝</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">✂️</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wednesday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="wednesday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Wednesday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🧸</div>
+                            <div class="pl-2">🖍️</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">👨‍👩‍👧‍👦</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thursday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="thursday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Thursday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🚗</div>
+                            <div class="pl-2">🎶</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">📚</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Friday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="friday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Friday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🧩</div>
+                            <div class="pl-2">🎨</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">🚴</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍕</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">🎥</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="saturday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Saturday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🥞</div>
+                            <div class="pl-2">👨‍👩‍👧‍👦</div>
+                            <div class="pl-2">🏞️</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍔</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">🎭</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="flex-1 flex flex-col border-2 border-gray-300 rounded-lg p-2" id="sunday">
+                    <div class="text-center font-bold border-b-2 border-gray-300 pb-1 mb-2">Sunday</div>
+                    <div class="flex-1 flex flex-col text-sm">
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">☀️ Morning</div>
+                            <div class="pl-2">🍳</div>
+                            <div class="pl-2">🧸</div>
+                            <div class="pl-2">🏠</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="font-bold mb-1">🌤️ Afternoon</div>
+                            <div class="pl-2">🍲</div>
+                            <div class="pl-2">😴</div>
+                            <div class="pl-2">🖍️</div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">🌙 Evening</div>
+                            <div class="pl-2">🍝</div>
+                            <div class="pl-2">🛁</div>
+                            <div class="pl-2">📖</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Highlight today's column
+            const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            const today = new Date().getDay(); // 0 (Sunday) to 6 (Saturday)
+
+            // Since we want weeks to start on Monday (index 1)
+            let todayElementId;
+            if (today === 0) {
+                // Sunday
+                todayElementId = "sunday";
+            } else {
+                todayElementId = days[today];
+            }
+
+            document.getElementById(todayElementId).classList.add("today");
+
+            // Set current week dates
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Start on Monday
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+            const options = { month: "short", day: "numeric" };
+            const weekString = `${startOfWeek.toLocaleDateString("en-US", options)} - ${endOfWeek.toLocaleDateString("en-US", options)}`;
+            document.getElementById("current-week").textContent = weekString;
+        </script>
+    </body>
+</html>

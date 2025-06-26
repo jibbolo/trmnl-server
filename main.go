@@ -1,16 +1,17 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"embed"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	// "github.com/chromedp/chromedp"
 )
 
 // Options for the CLI.
@@ -22,6 +23,8 @@ type Options struct {
 var staticFiles embed.FS
 
 func main() {
+	chromedbHost := cmp.Or(os.Getenv("CHROMEDP_HOST"), "localhost:9222")
+
 	// generateImage()
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 		// Create a new middleware multiplexer
@@ -29,7 +32,7 @@ func main() {
 
 		// Set up static file handlers with content length middleware
 		staticHandler := http.FileServer(http.FS(staticFiles))
-		mux.Handle("/static/", WithContentLength(staticHandler))
+		mux.Handle("/static/", staticHandler)
 
 		// Set up generated files handler with content length middleware
 		generatedHandler := http.FileServer(http.Dir("generated"))
@@ -61,6 +64,11 @@ func main() {
 	})
 
 	cli.Run()
+	_ = chromedbHost
+	// go cli.Run()
+	// time.Sleep(500 * time.Millisecond)
+	// convertHTMLToPng(chromedbHost)
+	// generateImage()
 }
 
 // This section has been moved to middleware.go

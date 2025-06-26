@@ -6,10 +6,11 @@ import (
 
 func generateImage() {
 
-	var (
-		img, _ = halfgone.LoadImage("images/chart.png")
-		// rng    = rand.New(rand.NewSource(time.Now().UnixNano()))
-	)
+	img, err := halfgone.LoadImage("generated/output.png")
+	if err != nil {
+		panic(err)
+	}
+	// rng    = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// Grayscale conversion
 	var gray = halfgone.ImageToGray(img)

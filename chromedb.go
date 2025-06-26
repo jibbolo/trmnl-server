@@ -1,59 +1,90 @@
 package main
 
-// 	// Il contenuto HTML da renderizzare
-// 	htmlContent := `
-// 	<!DOCTYPE html>
-// <html lang="en" class="bg-white text-black">
-// <head>
-//   <meta charset="UTF-8" />
-//   <meta name="viewport" content="width=device-width, initial-scale=1" />
-//   <script src="https://cdn.tailwindcss.com"></script>
-//   <style>
-//     body {
-//       font-family: 'Courier New', Courier, monospace;
-//     }
-//   </style>
-// </head>
-// <body class="flex flex-col justify-center items-center h-screen select-none">
+import (
+	"context"
+	"io"
+	"log"
+	"net/url"
+	"os"
+	"time"
 
-//   <main class="text-center space-y-3">
-//     <h1 class="text-xl leading-tight tracking-wide">DAJE BYOS</h1>
-//     <p class="text-lg">This screen was rendered by BYOS</p>
-//     <a href="#" class="underline">Giacomo Marinangeli</a>
-//   </main>
+	"github.com/chromedp/chromedp"
+)
 
-//   <footer class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto">
-//     <div class="flex items-center justify-center border border-black rounded-md px-3 py-1 text-xs font-mono leading-none whitespace-nowrap bg-white bg-opacity-90">
-//       trmnl.gmar.dev
-//     </div>
-//   </footer>
+func convertHTMLToPng(chromedbHost string) {
 
-// </body>
-// </html>
-//     `
-// ctx, cancel := chromedp.NewContext(context.Background())
-// defer cancel()
+	// // Il contenuto HTML da renderizzare
+	// htmlContent := `
+	// 	<!DOCTYPE html>
+	// <html lang="en" class="bg-white text-black">
+	// <head>
+	//   <meta charset="UTF-8" />
+	//   <meta name="viewport" content="width=device-width, initial-scale=1" />
+	//   <script src="https://cdn.tailwindcss.com"></script>
+	//   <style>
+	//     body {
+	//       font-family: 'Courier New', Courier, monospace;
+	//     }
+	//   </style>
+	// </head>
+	// <body class="flex flex-col justify-center items-center h-screen select-none">
 
-// ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
-// defer cancel()
+	//   <main class="text-center space-y-3">
+	//     <h1 class="text-xl leading-tight tracking-wide">DAJE BYOS</h1>
+	//     <p class="text-lg">This screen was rendered by BYOS</p>
+	//     <a href="#" class="underline">Giacomo Marinangeli</a>
+	//   </main>
 
-// var buf []byte
+	//   <footer class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto">
+	//     <div class="flex items-center justify-center border border-black rounded-md px-3 py-1 text-xs font-mono leading-none whitespace-nowrap bg-white bg-opacity-90">
+	//       trmnl.gmar.dev
+	//     </div>
+	//   </footer>
 
-// // Usa url.PathEscape per codificare correttamente il contenuto HTML
-// dataURL := "data:text/html," + url.PathEscape(htmlContent)
+	// </body>
+	// </html>
+	//     `
+	// _ = htmlContent
 
-// err := chromedp.Run(ctx,
-// 	chromedp.Navigate(dataURL),
-// 	chromedp.WaitVisible("body", chromedp.ByQuery),
-// 	chromedp.EmulateViewport(800, 480),
-// 	chromedp.FullScreenshot(&buf, 90),
-// )
-// if err != nil {
-// 	log.Fatal(err)
-// }
+	dockerURL := "wss://" + chromedbHost
+	allocatorContext, cancelAllocator := chromedp.NewRemoteAllocator(context.Background(), dockerURL)
+	defer cancelAllocator()
 
-// if err := os.WriteFile("generated/output.png", buf, 0644); err != nil {
-// 	log.Fatal(err)
-// }
+	ctx, cancelChrome := chromedp.NewContext(allocatorContext)
+	defer cancelChrome()
 
-// log.Println("Screenshot salvato in output.png")
+	ctx, cancelTimeout := context.WithTimeout(ctx, 15*time.Second)
+	defer cancelTimeout()
+
+	var buf []byte
+
+	// Usa url.PathEscape per codificare correttamente il contenuto HTML
+
+	f, err := os.Open("static/index.html")
+	if err != nil {
+		panic(err)
+	}
+	htmlContent, err := io.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+
+	dataURL := "data:text/html," + url.PathEscape(string(htmlContent))
+	// dataURL := "http://localhost:8888/static/"
+
+	if err := chromedp.Run(ctx,
+		chromedp.Navigate(dataURL),
+		chromedp.WaitVisible("body", chromedp.ByQuery),
+		chromedp.EmulateViewport(800, 480),
+		chromedp.FullScreenshot(&buf, 100),
+	); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := os.WriteFile("generated/output.png", buf, 0644); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Screenshot salvato in generated/output.png")
+
+}
