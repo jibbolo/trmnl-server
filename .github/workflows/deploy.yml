@@ -24,7 +24,7 @@ jobs:
       - name: cURL
         id: curl
         run: |
-          response=$(curl --silent --output /dev/null --write-out "%{http_code}" ${{ vars.COOLIFY_WEBHOOK }} -H 'Authorization: Bearer ${{ secrets.COOLIFY_API_KEY }}'); echo "response=$response" >> $GITHUB_OUTPUT
+          response=$(curl --silent --output /dev/null --header 'Authorization: Bearer ${{ secrets.COOLIFY_API_KEY }}' --write-out "%{http_code}" ${{ vars.COOLIFY_WEBHOOK }}); echo "response=$response" >> $GITHUB_OUTPUT
 
       - name: Updating summary
         run: |
